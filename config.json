@@ -1,0 +1,10 @@
+{
+  "host": ":7777",
+  "static": "http://localhost:7777/static",
+  "pdf": {
+    "dpi": 300,
+    "orientation": "Portrait",
+    "grayscale": false,
+    "pagesize": "A4"
+  }
+}

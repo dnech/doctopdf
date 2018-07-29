@@ -1,6 +1,7 @@
 # doctopdf
 Templates document to pdf converter service
 
+```
 // Install wkhtmltopdf in your system from https://wkhtmltopdf.org/downloads.html
 // Create folder "static"
 // Create folder "template"
@@ -37,3 +38,4 @@ Templates document to pdf converter service
 // run server "doctopdf"
 // See in browser html result "localhost:5555/doc/test"
 // See in browser pdf result  "localhost:5555/pdf/test"
+```

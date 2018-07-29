@@ -38,4 +38,10 @@ Templates document to pdf converter service
 // run server "doctopdf"
 // See in browser html result "localhost:5555/doc/test"
 // See in browser pdf result  "localhost:5555/pdf/test"
+
 ```
+
+How it works:
+- send in GET or POST method json param "data",
+- this param integrate in templates as javascript params
+- javascript parse json and replace template field

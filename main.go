@@ -2,7 +2,6 @@ package main
 
 import (
 	"net/http"
-	"html/template"
 	"strings"
 	"log"
 	"github.com/labstack/echo"
@@ -11,7 +10,6 @@ import (
 	"os"
 	"fmt"
 	"encoding/json"
-	"bytes"
 )
 
 type Pdf struct {
@@ -24,6 +22,7 @@ type Pdf struct {
 type Config struct {
 	Host string `json:"host"`
 	Static string `json:"static"`
+	Public string `json:"public"`
 	Pdf Pdf `json:"pdf"`
 }
 
@@ -33,11 +32,11 @@ func LoadConfiguration(file string) Config {
 	config := Config{}
 	config.Host = ":5555"
 	config.Static = "http://localhost:5555/static"
+	config.Public = "http://localhost:5555"
 	config.Pdf.Dpi = 300
 	config.Pdf.Grayscale = false
 	config.Pdf.Orientation = wkhtmltopdf.OrientationPortrait
 	config.Pdf.PageSize = wkhtmltopdf.PageSizeA4
-
 
 	configFile, err := os.Open(file)
 	defer configFile.Close()
@@ -47,6 +46,7 @@ func LoadConfiguration(file string) Config {
 	}
 	jsonParser := json.NewDecoder(configFile)
 	jsonParser.Decode(&config)
+
 	return config
 }
 
@@ -58,6 +58,7 @@ func main() {
 	e := echo.New()
 
 	e.Static("static", "./static")
+	e.Static("/", "./public")
 
 	e.GET("/temp/:id", func(c echo.Context) error {
 		id := c.Param("id")
@@ -74,13 +75,9 @@ func main() {
 }
 
 type TemplateData struct {
-	Id string
-	Config Config
-	Method string
-	Data string
-	Query map[string]string
-	Form map[string]string
-	Cookies map[string]string
+	Id string `json:"id"`
+	Config Config `json:"config"`
+	Data json.RawMessage `json:"data"`
 }
 
 func convertParams(data map[string][]string) map[string]string {
@@ -103,23 +100,7 @@ func convertCookie(data []*http.Cookie) map[string]string {
 	return ret
 }
 
-func getHtml(c echo.Context) (string, error) {
-	id := c.Param("id")
-
-	t, err := template.ParseFiles("./template/" + id + ".html")
-	if err != nil {
-		return "", err
-	}
-
-	data := TemplateData{
-		Id: id,
-		Config: config,
-		Method: c.Request().Method,
-		Query: convertParams(c.Request().URL.Query()),
-		Form: convertParams(c.Request().URL.Query()),
-		Cookies: convertCookie(c.Cookies()),
-	}
-
+func getDataParams(c echo.Context) string {
 	params_json := "{}"
 	params, ok := c.Request().URL.Query()["data"]
 	if ok {
@@ -128,33 +109,86 @@ func getHtml(c echo.Context) (string, error) {
 		}
 	}
 
-	err = c.Request().ParseForm()
+	err := c.Request().ParseForm()
 	if err == nil {
-		data.Form = convertParams(c.Request().Form)
 		form_data := c.Request().Form.Get("data")
 		if form_data != "" {
 			params_json = form_data
 		}
 	}
+	return params_json
+}
 
 
-	fmt.Println(params_json)
-	fmt.Println(c.Request().Method)
-	fmt.Println(c.ParamValues())
-	fmt.Println(c.Cookies())
+func loadPdfConfig(c echo.Context) Pdf {
+	id := c.Param("id")
 
-	data.Data = params_json
+	// Default
+	pdf := Pdf{}
+	pdf.Dpi = config.Pdf.Dpi
+	pdf.Grayscale = config.Pdf.Grayscale
+	pdf.Orientation = config.Pdf.Orientation
+	pdf.PageSize = config.Pdf.PageSize
 
-	var tpl bytes.Buffer
-	if err := t.Execute(&tpl, data); err != nil {
+	file, err := os.Open("./template/" + id + ".json")
+	if err != nil {
+		return pdf
+	}
+
+	jsonParser := json.NewDecoder(file)
+	jsonParser.Decode(&pdf)
+
+	return pdf
+}
+
+func getReplaceHtml(c echo.Context) (string, error) {
+	id := c.Param("id")
+
+	file, err := os.Open("./template/" + id + ".html")
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	// получить размер файла
+	stat, err := file.Stat()
+	if err != nil {
+		return "", err
+	}
+	// чтение файла
+	bs := make([]byte, stat.Size())
+	_, err = file.Read(bs)
+	if err != nil {
 		return "", err
 	}
 
-	return tpl.String(), nil
+	str := string(bs)
+
+
+	data := TemplateData{
+		Id: id,
+		Config: config,
+		Data: json.RawMessage(getDataParams(c)),
+	}
+
+	params_json := ""
+	b, err := json.Marshal(data)
+	if err != nil {
+		params_json = `{"message":"`+ string(err.Error()) +`"}`
+	} else {
+		params_json = string(b)
+	}
+
+	str = strings.Replace(str, "${template.id}", id, -1)
+	str = strings.Replace(str, "${template.static}", config.Static, -1)
+	str = strings.Replace(str, "${template.public}", config.Public, -1)
+	str = strings.Replace(str, "${template.data}", params_json, -1)
+
+	return str, nil
 }
 
 func getDoc(c echo.Context) error {
-	html, err := getHtml(c)
+	html, err := getReplaceHtml(c)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
@@ -162,22 +196,23 @@ func getDoc(c echo.Context) error {
 }
 
 func getPdf(c echo.Context) error {
-	html, err := getHtml(c)
+	html, err := getReplaceHtml(c)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
+	pdf_config := loadPdfConfig(c)
 
 	id := c.Param("id")
 	guid := uuid.Must(uuid.NewV4()).String()
 
-	if err := convertToPdf(html, id + "_" + guid); err != nil {
+	if err := convertToPdf(html, id + "_" + guid, pdf_config); err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
 	return c.File("./temp/" + id + "_" + guid + ".pdf")
 }
 
-func convertToPdf(html string, filename string) error {
+func convertToPdf(html string, filename string, config Pdf) error {
 	pdfg, err := wkhtmltopdf.NewPDFGenerator()
 	if err != nil {
 		log.Println(err)
@@ -185,10 +220,10 @@ func convertToPdf(html string, filename string) error {
 	}
 
 	// Set global options
-	pdfg.Dpi.Set(config.Pdf.Dpi)
-	pdfg.Orientation.Set(config.Pdf.Orientation)
-	pdfg.Grayscale.Set(config.Pdf.Grayscale)
-	pdfg.PageSize.Set(config.Pdf.PageSize)
+	pdfg.Dpi.Set(config.Dpi)
+	pdfg.Orientation.Set(config.Orientation)
+	pdfg.Grayscale.Set(config.Grayscale)
+	pdfg.PageSize.Set(config.PageSize)
 
 	// Create a new input page from HTML
 	pdfg.AddPage(wkhtmltopdf.NewPageReader(strings.NewReader(html)))

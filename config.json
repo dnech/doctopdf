@@ -1,6 +1,7 @@
 {
-  "host": ":7777",
-  "static": "http://localhost:7777/static",
+  "host": ":8888",
+  "static": "http://localhost:8888/static",
+  "public": "http://localhost:8888",
   "pdf": {
     "dpi": 300,
     "orientation": "Portrait",

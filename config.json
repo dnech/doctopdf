@@ -6,6 +6,10 @@
     "dpi": 300,
     "orientation": "Portrait",
     "grayscale": false,
-    "pagesize": "A4"
+    "pagesize": "A4",
+    "margin_top": 5,
+    "margin_bottom": 5,
+    "margin_right": 5,
+    "margin_left": 20
   }
 }

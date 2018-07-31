@@ -17,6 +17,10 @@ type Pdf struct {
 	Orientation string `json:"orientation"`
 	Grayscale bool `json:"grayscale"`
 	PageSize string `json:"pagesize"`
+	MarginTop uint `json:"margin_top"`
+	MarginBottom uint `json:"margin_bottom"`
+	MarginRight uint `json:"margin_right"`
+	MarginLeft uint `json:"margin_left"`
 }
 
 type Config struct {
@@ -37,6 +41,10 @@ func LoadConfiguration(file string) Config {
 	config.Pdf.Grayscale = false
 	config.Pdf.Orientation = wkhtmltopdf.OrientationPortrait
 	config.Pdf.PageSize = wkhtmltopdf.PageSizeA4
+	config.Pdf.MarginTop = 5
+	config.Pdf.MarginBottom = 5
+	config.Pdf.MarginRight  = 5
+	config.Pdf.MarginLeft = 20
 
 	configFile, err := os.Open(file)
 	defer configFile.Close()
@@ -129,6 +137,10 @@ func loadPdfConfig(c echo.Context) Pdf {
 	pdf.Grayscale = config.Pdf.Grayscale
 	pdf.Orientation = config.Pdf.Orientation
 	pdf.PageSize = config.Pdf.PageSize
+	pdf.MarginTop = config.Pdf.MarginTop
+	pdf.MarginBottom = config.Pdf.MarginBottom
+	pdf.MarginRight = config.Pdf.MarginRight
+	pdf.MarginLeft = config.Pdf.MarginLeft
 
 	file, err := os.Open("./template/" + id + ".json")
 	if err != nil {
@@ -224,6 +236,10 @@ func convertToPdf(html string, filename string, config Pdf) error {
 	pdfg.Orientation.Set(config.Orientation)
 	pdfg.Grayscale.Set(config.Grayscale)
 	pdfg.PageSize.Set(config.PageSize)
+	pdfg.MarginTop.Set(config.MarginTop)
+	pdfg.MarginBottom.Set(config.MarginBottom)
+	pdfg.MarginRight.Set(config.MarginRight)
+	pdfg.MarginLeft.Set(config.MarginLeft)
 
 	// Create a new input page from HTML
 	pdfg.AddPage(wkhtmltopdf.NewPageReader(strings.NewReader(html)))

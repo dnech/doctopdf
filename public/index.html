@@ -13,21 +13,31 @@
         <div class="card card-success">
             <div class="card-header">HTML template</div>
             <div class="card-block">
+
+                <!-- Пример формы отправляемой в шаблон /doc/test (обязательно указать data-type="pdf" и action="/doc/test")-->
                 <form data-type="pdf" method="POST" action="/doc/test">
-                    <input type="text" name="name" value='Петр'><br>
+                    <input type="text" name="name"  value='Петр'><br>
                     <input type="text" name="email" value='petr@test.ru'><br>
+                    <input type="text" name="array" value='[{"x":11,"y":12},{"x":21,"y":22},{"x":31,"y":32},{"x":41,"y":42},{"x":51,"y":52},{"x":61,"y":62}]'><br>
                     <input type="submit" value="Отправить">
                 </form>
+
+
             </div>
         </div>
         <div class="card card-info">
             <div class="card-header">PDF template</div>
             <div class="card-block">
+
+                <!-- Пример формы отправляемой в шаблон /pdf/test (обязательно указать data-type="pdf" и action="/pdf/test")-->
                 <form data-type="pdf" method="POST" action="/pdf/test">
                     <input type="text" name="name" value='Вася'><br>
                     <input type="text" name="email" value='vasya@test.ru'><br>
+                    <input type="text" name="array" value='[{"x":11,"y":12},{"x":21,"y":22},{"x":31,"y":32},{"x":41,"y":42},{"x":51,"y":52},{"x":61,"y":62}]'><br>
                     <input type="submit" value="Отправить">
                 </form>
+
+
             </div>
         </div>
     </div>

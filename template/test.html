@@ -8,23 +8,75 @@
     <script src="${template.static}/js/render.js"></script>
 </head>
 <body>
+
+
+
+    <!-- ----------------------------------------------------------------------------------------------------------- -->
+    <!-- Не изменять! Обязательный блок, нужен для приема данных из шаблонизатора, далее эти данные обработаются скриптом /js/render.js -->
     <script>
         window.TEMPLATE = {
-            id: '${template.id}',
-            static: '${template.static}',
-            public: '${template.public}',
-            data: '${template.data}',
+            id: "${template.id}",
+            static: "${template.static}",
+            public: "${template.public}",
+            data: "${template.data}",
             render: function(data) {
                 console.log("After render", data);
             }
         };
     </script>
 
+
+
+    <!-- ----------------------------------------------------------------------------------------------------------- -->
+    <!-- Просто так, красатулька, ссылка на описание возможностей шаблонизатора -->
     <div class="alert alert-primary" role="alert">Use <a href="https://www.jsviews.com/#jsrapi">JsRender Api</a></div>
 
-    <div id="render" class="alert alert-info" role="alert"></div>
 
-    <script type="template" data-target="#render">
+
+    <!-- ----------------------------------------------------------------------------------------------------------- -->
+    <!-- Сюда упадет контент сгенерированный шаблоном с data-target="#info" -->
+    <div id="info" class="alert alert-info" role="alert"></div>
+
+    <!-- Шаблон (type="template"), который заполнится данными и упадет во все элементы попадающие под селектор data-target, в этом примере это элементы с id = info -->
+    <script type="template" data-target="#info">
+        <b><em>Name:</em></b> "{{:data.name}}"<br/>
+        <b><em>Email:</em></b> "{{:data.email}}"<br/>
+        <b><em>Array:</em></b> "{{:data.array}}"<br/>
+    </script>
+
+
+    <!-- ----------------------------------------------------------------------------------------------------------- -->
+    <!-- Сюда упадет контент сгенерированный шаблоном с data-target="#table" -->
+    <div id="table" class="alert alert-primary" role="alert"></div>
+
+    <!-- Шаблон (type="template"), который заполнится данными и упадет во все элементы попадающие под селектор data-target, в этом примере это элементы с id = table -->
+    <script type="template" data-target="#table">
+        <table border="1" style="width:100%;">
+            <thead>
+            <tr><td>X</td><td>Y</td></tr>
+            </thead>
+            <tbody>
+                {{for data.array}}
+                <tr><td>{{:x}}</td><td>{{:y}}</td></tr>
+                {{/for}}
+            </tbody>
+        </table>
+    </script>
+
+
+    <!-- ----------------------------------------------------------------------------------------------------------- -->
+    <!-- Блоки в которые попадет заполненый шаблон, пример блока разбиваемого части при переносе страницы -->
+    <div class="test alert alert-info" role="alert"></div>
+    <div class="test alert alert-primary" role="alert"></div>
+    <div class="test alert alert-success" role="alert"></div>
+
+    <!-- Блоки в которые попадет заполненый шаблон, пример блока не разбиваемого части при переносе страницы -->
+    <div style="page-break-inside:avoid;" class="test alert alert-info" role="alert"></div>
+    <div style="page-break-inside:avoid;" class="test alert alert-primary" role="alert"></div>
+    <div style="page-break-inside:avoid;" class="test alert alert-success" role="alert"></div>
+
+    <!-- Шаблон (type="template"), который заполнится данными и упадет во все элементы попадающие под селектор data-target, в этом примере это элементы с классом test -->
+    <script type="template" data-target=".test">
     <div>
         <b><em>Id:</em></b> "{{:id}}"<br/>
         <b><em>Config:</em></b><br/>
@@ -41,12 +93,9 @@
         </ul>
     </div>
 
-    <div>
-        <b><em>Name:</em></b> "{{:data.name}}"<br/>
-        <b><em>Email:</em></b> "{{:data.email}}"<br/>
-    </div>
-
     </script>
+
+
 
 
 </body>

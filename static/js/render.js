@@ -2,7 +2,22 @@ $( document ).ready(function() {
 
     // GET DATA
     var data = {id: "", config: {}, data:{}};
-    try {data = JSON.parse(window.TEMPLATE.data);} catch(e) {}
+    try {
+        data = JSON.parse(window.TEMPLATE.data);
+        if (data['data']) {
+            for (var key in data['data']) {
+                try {
+                    data['data'][key] = JSON.parse(data['data'][key]);
+                } catch (e) {
+                    //console.error("DATA '" + key + "':", data['data'][key]);
+                    //console.error("DATA '" + key + "':", e);
+                }
+            }
+        }
+    } catch(e) {
+        console.error("DATA:", window.TEMPLATE.data);
+        console.error("DATA:", e);
+    }
     console.log("DATA:", data);
 
     // RENDER TEMPLATE

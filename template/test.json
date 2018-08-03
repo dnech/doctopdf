@@ -1,7 +1,7 @@
 {
   "dpi": 300,
   "orientation": "Portrait",
-  "grayscale": true,
+  "grayscale": false,
   "pagesize": "A4",
   "margin_top": 5,
   "margin_bottom": 5,

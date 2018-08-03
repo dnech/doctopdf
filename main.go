@@ -194,11 +194,18 @@ func getReplaceHtml(c echo.Context) (string, error) {
 	str = strings.Replace(str, "${template.id}", id, -1)
 	str = strings.Replace(str, "${template.static}", config.Static, -1)
 	str = strings.Replace(str, "${template.public}", config.Public, -1)
+
+	params_json = strings.Replace(params_json, "\\", "\\\\", -1)
+	params_json = strings.Replace(params_json, "\"", "\\\"", -1)
+
 	str = strings.Replace(str, "${template.data}", params_json, -1)
 
 	return str, nil
 }
 
+/*
+*   CONTENT DOC
+*/
 func getDoc(c echo.Context) error {
 	html, err := getReplaceHtml(c)
 	if err != nil {
@@ -207,6 +214,9 @@ func getDoc(c echo.Context) error {
 	return c.HTML(http.StatusOK, html)
 }
 
+/*
+*   CONTENT PDF
+*/
 func getPdf(c echo.Context) error {
 	html, err := getReplaceHtml(c)
 	if err != nil {
@@ -224,6 +234,9 @@ func getPdf(c echo.Context) error {
 	return c.File("./temp/" + id + "_" + guid + ".pdf")
 }
 
+/*
+* CONVERT TO PDF
+*/
 func convertToPdf(html string, filename string, config Pdf) error {
 	pdfg, err := wkhtmltopdf.NewPDFGenerator()
 	if err != nil {

@@ -34,9 +34,9 @@ func LoadConfiguration(file string) Config {
 
 	// Default
 	config := Config{}
-	config.Host = ":5555"
-	config.Static = "http://localhost:5555/static"
-	config.Public = "http://localhost:5555"
+	config.Host = ":8888"
+	config.Static = "http://localhost:8888/static"
+	config.Public = "http://localhost:8888"
 	config.Pdf.Dpi = 300
 	config.Pdf.Grayscale = false
 	config.Pdf.Orientation = wkhtmltopdf.OrientationPortrait
